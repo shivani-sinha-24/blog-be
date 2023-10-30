@@ -1,10 +1,31 @@
 import Blog from "../models/Blog.js";
+import aws from 'aws-sdk';
+import { uploadSingleFile } from '../utils/aws-s3.js';
 
-const addBlog = (req, res) => {
+// Configure AWS SDK
+aws.config.update({
+  accessKeyId: process.env.S3_API_KEY,
+  secretAccessKey: process.env.S3_SECRET_KEY,
+  region: process.env.AWS_REGION,
+});
+
+const formS3Params = (file, folder) => ({
+  ACL: 'public-read',
+  Bucket: process.env.S3_BUCKET_NAME,
+  Body: fs.createReadStream(file.path),
+  Key: `${folder}/${Date.now()}-${file.originalname}`,
+});
+
+
+// Create an S3 instance
+const s3 = new aws.S3();
+
+const addBlog = async (req, res) => {
     const { title,content, date, userId,userName } = req.body;
     let imgFile;
-    if (req.file) {
-      imgFile = req.file.filename;
+    if (req?.files) {
+      // imgFile = req?.files.filename;
+      imgFile = req?.files?.image?.name;
     }
 
     if (imgFile === undefined && (title == ""||content == "")) {
@@ -31,11 +52,14 @@ const addBlog = (req, res) => {
         }
       } else {
         // both image and title
+        // Upload the file to AWS S3 using the uploadSingleFile function
+        const file = req.files.image; // This should match the name attribute in your HTML form
+        const imageUrl = await uploadSingleFile(file, 'image');
         const blog =  new Blog({
           userName:userName,
           userId:userId,
           title:title,
-          image: imgFile,
+          image: imageUrl,
           content:content,
           date: date,
         });

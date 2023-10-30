@@ -3,17 +3,28 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
+import fileUpload from 'express-fileupload';
+import * as path from 'path'
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
 //routes
 import userRoutes from './routes/userRoutes.js'
 import blogRoutes from './routes/blogRoutes.js'
 
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const absolutePath = path.resolve(__dirname, "..", "uploads");
 const app = express();
 
+
 //middleware
+app.use(fileUpload())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use("/uploads", express.static("./uploads"));  //upload folder should in the root directory
+// app.use("/uploads", express.static("./uploads"));  //upload folder should in the root directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads"))); 
 app.use(function (err, req, res, next) {
 
   console.log(err);
@@ -36,7 +47,8 @@ const corsOptions ={
   credentials:true,            //access-control-allow-credentials:true
   optionSuccessStatus:200
 }
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
+app.use(cors());
 
 // Connect to MongoDB
 main().catch((err) => console.error(err));

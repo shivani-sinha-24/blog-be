@@ -27,6 +27,7 @@ const router = express.Router()
 router.get('/',getBlogs)
 router.get('/:id',getBlog)
 router.post("/add-comment",addCmnt)
-router.post("/add-blog",upload.single("image"),addBlog)
+// router.post("/add-blog",upload.single("image"),addBlog)
+router.post("/add-blog",addBlog)
 
 export default router
